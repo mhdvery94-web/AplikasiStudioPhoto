@@ -1,17 +1,13 @@
 /build/
 /dist/
-/build/
-/dist/
 /docx_extracted/
+
 /doc_raw.txt
 /doc_text.txt
 /laporan_temp.zip
 
-/build/
-/dist/
-/docx_extracted/
-/doc_raw.txt
-/doc_text.txt
-/laporan_temp.zip
+*.docx
+*.class
+*.log
 
-/PhotoStudio_Laporan_Tugas_Akhir_BARU.docx
+/nbproject/private/
