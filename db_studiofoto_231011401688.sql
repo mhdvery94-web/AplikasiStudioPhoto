@@ -119,7 +119,7 @@ CREATE TABLE `paket_photo` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_paket_ukuran` (`nama_paket`,`ukuran`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -128,7 +128,6 @@ CREATE TABLE `paket_photo` (
 
 LOCK TABLES `paket_photo` WRITE;
 /*!40000 ALTER TABLE `paket_photo` DISABLE KEYS */;
-INSERT INTO `paket_photo` VALUES (1,'Pas Foto','2x3',15000,'2026-07-01 01:38:39','2026-07-01 01:38:39'),(2,'Pas Foto','3x4',20000,'2026-07-01 01:38:39','2026-07-01 01:38:39'),(3,'Pas Foto','4x6',25000,'2026-07-01 01:38:39','2026-07-01 01:38:39'),(4,'Photo Studio Basic','4R',50000,'2026-07-01 01:38:39','2026-07-01 01:38:39'),(5,'Photo Studio Premium','10R',150000,'2026-07-01 01:38:39','2026-07-01 01:38:39');
 /*!40000 ALTER TABLE `paket_photo` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -171,4 +170,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-07-01 10:28:58
+-- Dump completed on 2026-07-01 14:42:25
