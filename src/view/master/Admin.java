@@ -1,759 +1,367 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ */
 package view.master;
 
-import controller.AdminController;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.text.DecimalFormat;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.table.DefaultTableModel;
-import model.User;
-import view.Login;
+/**
+ *
+ * @author fajri
+ */
+public class Admin extends javax.swing.JFrame {
 
-public class Admin extends JFrame {
-
-    private final AdminController controller;
-    private final User currentUser;
-
-    // User management
-    private JTable userTable;
-    private DefaultTableModel userTableModel;
-    private JTextField txtUsername, txtNama;
-    private JPasswordField txtPassword;
-    private JComboBox<String> cmbRole;
-
-    // Paket Photo
-    private JTable paketTable;
-    private DefaultTableModel paketTableModel;
-    private JTextField txtNamaPaket, txtUkuranPaket, txtHargaPaket;
-
-    // Diskon
-    private JTable diskonTable;
-    private DefaultTableModel diskonTableModel;
-    private JTextField txtNamaDiskon, txtPersenDiskon;
-
-    // Metode Bayar
-    private JTable metodeTable;
-    private DefaultTableModel metodeTableModel;
-    private JTextField txtNamaMetode;
-
-    // Order viewing
-    private JTable orderTable;
-    private DefaultTableModel orderTableModel;
-
-    // Summary labels
-    private JLabel lblTransaksi, lblPelanggan, lblOrder, lblOmzet, lblTotalUser;
-
-    public Admin(User user) {
-        this.currentUser = user;
-        this.controller = new AdminController();
-        initUI();
-    }
-
-    private void initUI() {
-        setTitle("Studio Photo - Dashboard Admin | " + currentUser.getNama());
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1050, 700);
-        setLocationRelativeTo(null);
-
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(buildHeader(), BorderLayout.NORTH);
-
-        JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("User Management", buildUserPanel());
-        tabs.addTab("Paket Photo", buildPaketPanel());
-        tabs.addTab("Diskon", buildDiskonPanel());
-        tabs.addTab("Metode Bayar", buildMetodePanel());
-        tabs.addTab("Daftar Order", buildOrderPanel());
-        tabs.addTab("Ringkasan", buildSummaryPanel());
-        mainPanel.add(tabs, BorderLayout.CENTER);
-
-        setContentPane(mainPanel);
-    }
-
-    // ==================== HEADER ====================
-
-    private JPanel buildHeader() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(33, 150, 243));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-
-        JLabel title = new JLabel("STUDIO PHOTO - ADMIN DASHBOARD");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        title.setForeground(Color.WHITE);
-
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        rightPanel.setOpaque(false);
-        JLabel userLabel = new JLabel(currentUser.getNama() + " (" + currentUser.getRole() + ")");
-        userLabel.setForeground(Color.WHITE);
-        userLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        rightPanel.add(userLabel);
-
-        JButton btnLogout = new JButton("Logout");
-        btnLogout.addActionListener(e -> logout());
-        rightPanel.add(btnLogout);
-
-        panel.add(title, BorderLayout.WEST);
-        panel.add(rightPanel, BorderLayout.EAST);
-        return panel;
-    }
-
-    // ==================== USER MANAGEMENT ====================
-
-    private JPanel buildUserPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 5));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Form User"));
-        formPanel.setPreferredSize(new Dimension(400, 200));
-
-        formPanel.add(new JLabel("Username:"));
-        txtUsername = new JTextField();
-        formPanel.add(txtUsername);
-
-        formPanel.add(new JLabel("Password:"));
-        txtPassword = new JPasswordField();
-        formPanel.add(txtPassword);
-
-        formPanel.add(new JLabel("Nama Lengkap:"));
-        txtNama = new JTextField();
-        formPanel.add(txtNama);
-
-        formPanel.add(new JLabel("Role:"));
-        cmbRole = new JComboBox<>(new String[]{"Admin", "Kasir", "Kepala Toko"});
-        formPanel.add(cmbRole);
-
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-        JButton btnAdd = new JButton("Tambah");
-        JButton btnUpdate = new JButton("Update");
-        JButton btnDelete = new JButton("Hapus");
-        JButton btnClear = new JButton("Clear");
-
-        btnAdd.addActionListener(e -> addUser());
-        btnUpdate.addActionListener(e -> updateUser());
-        btnDelete.addActionListener(e -> deleteUser());
-        btnClear.addActionListener(e -> clearUserForm());
-
-        btnPanel.add(btnAdd);
-        btnPanel.add(btnUpdate);
-        btnPanel.add(btnDelete);
-        btnPanel.add(btnClear);
-        formPanel.add(btnPanel);
-        formPanel.add(new JLabel());
-
-        String[] cols = {"No", "ID", "Username", "Nama", "Role", "Created At"};
-        userTableModel = new DefaultTableModel(cols, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-        userTable = new JTable(userTableModel);
-        userTable.getColumnModel().getColumn(0).setPreferredWidth(40);
-        userTable.getColumnModel().getColumn(1).setPreferredWidth(40);
-        userTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) selectUserRow();
-        });
-
-        controller.loadUsers(userTableModel);
-
-        panel.add(formPanel, BorderLayout.WEST);
-        panel.add(new JScrollPane(userTable), BorderLayout.CENTER);
-        return panel;
-    }
-
-    private void selectUserRow() {
-        int row = userTable.getSelectedRow();
-        if (row >= 0) {
-            txtUsername.setText((String) userTableModel.getValueAt(row, 2));
-            txtPassword.setText("");
-            txtNama.setText((String) userTableModel.getValueAt(row, 3));
-            cmbRole.setSelectedItem(userTableModel.getValueAt(row, 4));
-        }
-    }
-
-    private void addUser() {
-        String username = txtUsername.getText().trim();
-        String password = new String(txtPassword.getPassword()).trim();
-        String nama = txtNama.getText().trim();
-        String role = (String) cmbRole.getSelectedItem();
-
-        if (username.isEmpty() || password.isEmpty() || nama.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (controller.insertUser(username, password, nama, role)) {
-            JOptionPane.showMessageDialog(this, "User berhasil ditambahkan!");
-            controller.loadUsers(userTableModel);
-            clearUserForm();
-            refreshSummary();
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal menambah user!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void updateUser() {
-        int row = userTable.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Pilih user yang akan diupdate!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int id = (int) userTableModel.getValueAt(row, 1);
-        String username = txtUsername.getText().trim();
-        String password = new String(txtPassword.getPassword()).trim();
-        String nama = txtNama.getText().trim();
-        String role = (String) cmbRole.getSelectedItem();
-
-        if (controller.updateUser(id, username, password, nama, role)) {
-            JOptionPane.showMessageDialog(this, "User berhasil diupdate!");
-            controller.loadUsers(userTableModel);
-            clearUserForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal update user!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void deleteUser() {
-        int row = userTable.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Pilih user yang akan dihapus!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int id = (int) userTableModel.getValueAt(row, 1);
-        int confirm = JOptionPane.showConfirmDialog(this, "Yakin hapus user ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (controller.deleteUser(id)) {
-                JOptionPane.showMessageDialog(this, "User berhasil dihapus!");
-                controller.loadUsers(userTableModel);
-                clearUserForm();
-                refreshSummary();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal hapus user!", "Error", JOptionPane.ERROR_MESSAGE);
+    /**
+     * Creates new form Admin
+     */
+    public Admin() {
+            initComponents();
+            KelolaphotoButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            bukaKelolaPaketPhoto();
             }
-        }
-    }
-
-    private void clearUserForm() {
-        txtUsername.setText("");
-        txtPassword.setText("");
-        txtNama.setText("");
-        cmbRole.setSelectedIndex(0);
-        userTable.clearSelection();
-    }
-
-    // ==================== PAKET PHOTO ====================
-
-    private JPanel buildPaketPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JPanel formPanel = new JPanel(new GridLayout(4, 2, 10, 5));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Form Paket Photo"));
-        formPanel.setPreferredSize(new Dimension(380, 180));
-
-        formPanel.add(new JLabel("Nama Paket:"));
-        txtNamaPaket = new JTextField();
-        formPanel.add(txtNamaPaket);
-
-        formPanel.add(new JLabel("Ukuran:"));
-        txtUkuranPaket = new JTextField();
-        formPanel.add(txtUkuranPaket);
-
-        formPanel.add(new JLabel("Harga (Rp):"));
-        txtHargaPaket = new JTextField();
-        formPanel.add(txtHargaPaket);
-
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 5));
-        JButton btnAdd = new JButton("Tambah");
-        JButton btnUpdate = new JButton("Update");
-        JButton btnDelete = new JButton("Hapus");
-        JButton btnClear = new JButton("Clear");
-
-        btnAdd.addActionListener(e -> addPaket());
-        btnUpdate.addActionListener(e -> updatePaket());
-        btnDelete.addActionListener(e -> deletePaket());
-        btnClear.addActionListener(e -> clearPaketForm());
-
-        btnPanel.add(btnAdd);
-        btnPanel.add(btnUpdate);
-        btnPanel.add(btnDelete);
-        btnPanel.add(btnClear);
-        formPanel.add(btnPanel);
-        formPanel.add(new JLabel());
-
-        String[] cols = {"No", "ID", "Nama Paket", "Ukuran", "Harga"};
-        paketTableModel = new DefaultTableModel(cols, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-        paketTable = new JTable(paketTableModel);
-        paketTable.getColumnModel().getColumn(0).setPreferredWidth(40);
-        paketTable.getColumnModel().getColumn(1).setPreferredWidth(40);
-        paketTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) selectPaketRow();
         });
-
-        controller.loadPaket(paketTableModel);
-
-        panel.add(formPanel, BorderLayout.WEST);
-        panel.add(new JScrollPane(paketTable), BorderLayout.CENTER);
-        return panel;
     }
+    
+    private void bukaKelolaPaketPhoto() {
+        jDesktopPane1.removeAll();
 
-    private void selectPaketRow() {
-        int row = paketTable.getSelectedRow();
-        if (row >= 0) {
-            txtNamaPaket.setText((String) paketTableModel.getValueAt(row, 2));
-            txtUkuranPaket.setText((String) paketTableModel.getValueAt(row, 3));
-            txtHargaPaket.setText(String.valueOf(paketTableModel.getValueAt(row, 4)));
-        }
-    }
+        KelolaPaketPhoto form = new KelolaPaketPhoto();
+        jDesktopPane1.add(form);
 
-    private void addPaket() {
-        String nama = txtNamaPaket.getText().trim();
-        String ukuran = txtUkuranPaket.getText().trim();
-        String hargaStr = txtHargaPaket.getText().trim();
-
-        if (nama.isEmpty() || ukuran.isEmpty() || hargaStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        form.setVisible(true);
 
         try {
-            double harga = Double.parseDouble(hargaStr);
-            if (controller.insertPaket(nama, ukuran, harga)) {
-                JOptionPane.showMessageDialog(this, "Paket berhasil ditambahkan!");
-                controller.loadPaket(paketTableModel);
-                clearPaketForm();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal menambah paket! (kemungkinan duplikat nama+ukuran)", "Error", JOptionPane.ERROR_MESSAGE);
+            form.setMaximum(true);
+        } catch (java.beans.PropertyVetoException e) {
+            e.printStackTrace();
+        }
+
+        jDesktopPane1.revalidate();
+        jDesktopPane1.repaint();
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        NamaKasir = new javax.swing.JLabel();
+        JabatanKasir = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        DashboardButton = new javax.swing.JButton();
+        KelolauserButton = new javax.swing.JButton();
+        KelolaphotoButton = new javax.swing.JButton();
+        KeloladiskonButton = new javax.swing.JButton();
+        KelolapembayaranButton = new javax.swing.JButton();
+        KelolapengaturansistemButton = new javax.swing.JButton();
+        jPanel4 = new javax.swing.JPanel();
+        LogoutButton = new javax.swing.JButton();
+        jDesktopPane1 = new javax.swing.JDesktopPane();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        jSeparator2 = new javax.swing.JSeparator();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(900, 600));
+
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/assets/camera1.png"))); // NOI18N
+        jLabel1.setText("jLabel1");
+
+        jLabel2.setText("S T U D I O  P H O T O");
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel3.setText("SELAMAT DATANG");
+
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel4.setText("ADMIN");
+
+        NamaKasir.setText(" ");
+
+        JabatanKasir.setText(" ");
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 156, Short.MAX_VALUE)
+                            .addComponent(NamaKasir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(JabatanKasir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(NamaKasir)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(JabatanKasir)
+                .addGap(35, 35, 35))
+        );
+
+        DashboardButton.setText("Dashboard");
+
+        KelolauserButton.setText("Kelola User");
+
+        KelolaphotoButton.setText("Kelola Paket Photo");
+
+        KeloladiskonButton.setText("Kelola Diskon");
+
+        KelolapembayaranButton.setText("Kelola Pembayaran");
+
+        KelolapengaturansistemButton.setText("Kelola Pengaturan Sistem");
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(DashboardButton, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(KelolauserButton, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(KelolaphotoButton, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(KeloladiskonButton, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(KelolapembayaranButton, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(KelolapengaturansistemButton))
+                .addContainerGap(34, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap(24, Short.MAX_VALUE)
+                .addComponent(DashboardButton)
+                .addGap(12, 12, 12)
+                .addComponent(KelolauserButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(KelolaphotoButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(KeloladiskonButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(KelolapembayaranButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(KelolapengaturansistemButton)
+                .addGap(24, 24, 24))
+        );
+
+        LogoutButton.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        LogoutButton.setText("Logout");
+        LogoutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                LogoutButtonActionPerformed(evt);
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Harga harus berupa angka!", "Error", JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
-    private void updatePaket() {
-        int row = paketTable.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Pilih paket yang akan diupdate!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int id = (int) paketTableModel.getValueAt(row, 1);
-        String nama = txtNamaPaket.getText().trim();
-        String ukuran = txtUkuranPaket.getText().trim();
-        String hargaStr = txtHargaPaket.getText().trim();
-
-        try {
-            double harga = Double.parseDouble(hargaStr);
-            if (controller.updatePaket(id, nama, ukuran, harga)) {
-                JOptionPane.showMessageDialog(this, "Paket berhasil diupdate!");
-                controller.loadPaket(paketTableModel);
-                clearPaketForm();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal update paket!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Harga harus berupa angka!", "Error", JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
-    private void deletePaket() {
-        int row = paketTable.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Pilih paket yang akan dihapus!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int id = (int) paketTableModel.getValueAt(row, 1);
-        int confirm = JOptionPane.showConfirmDialog(this, "Yakin hapus paket ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (controller.deletePaket(id)) {
-                JOptionPane.showMessageDialog(this, "Paket berhasil dihapus!");
-                controller.loadPaket(paketTableModel);
-                clearPaketForm();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal hapus paket!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    private void clearPaketForm() {
-        txtNamaPaket.setText("");
-        txtUkuranPaket.setText("");
-        txtHargaPaket.setText("");
-        paketTable.clearSelection();
-    }
-
-    // ==================== DISKON ====================
-
-    private JPanel buildDiskonPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JPanel formPanel = new JPanel(new GridLayout(3, 2, 10, 5));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Form Diskon"));
-        formPanel.setPreferredSize(new Dimension(380, 150));
-
-        formPanel.add(new JLabel("Nama Diskon:"));
-        txtNamaDiskon = new JTextField();
-        formPanel.add(txtNamaDiskon);
-
-        formPanel.add(new JLabel("Persen (%):"));
-        txtPersenDiskon = new JTextField();
-        formPanel.add(txtPersenDiskon);
-
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 5));
-        JButton btnAdd = new JButton("Tambah");
-        JButton btnUpdate = new JButton("Update");
-        JButton btnDelete = new JButton("Hapus");
-        JButton btnClear = new JButton("Clear");
-
-        btnAdd.addActionListener(e -> addDiskon());
-        btnUpdate.addActionListener(e -> updateDiskon());
-        btnDelete.addActionListener(e -> deleteDiskon());
-        btnClear.addActionListener(e -> clearDiskonForm());
-
-        btnPanel.add(btnAdd);
-        btnPanel.add(btnUpdate);
-        btnPanel.add(btnDelete);
-        btnPanel.add(btnClear);
-        formPanel.add(btnPanel);
-        formPanel.add(new JLabel());
-
-        String[] cols = {"No", "ID", "Nama", "Persen"};
-        diskonTableModel = new DefaultTableModel(cols, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-        diskonTable = new JTable(diskonTableModel);
-        diskonTable.getColumnModel().getColumn(0).setPreferredWidth(40);
-        diskonTable.getColumnModel().getColumn(1).setPreferredWidth(40);
-        diskonTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) selectDiskonRow();
         });
 
-        controller.loadDiskon(diskonTableModel);
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(30, 30, 30)
+                .addComponent(LogoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(29, 29, 29)
+                .addComponent(LogoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(29, Short.MAX_VALUE))
+        );
 
-        panel.add(formPanel, BorderLayout.WEST);
-        panel.add(new JScrollPane(diskonTable), BorderLayout.CENTER);
-        return panel;
-    }
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(42, 42, 42)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap(25, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(16, 16, 16)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(23, Short.MAX_VALUE))
+        );
 
-    private void selectDiskonRow() {
-        int row = diskonTable.getSelectedRow();
-        if (row >= 0) {
-            txtNamaDiskon.setText((String) diskonTableModel.getValueAt(row, 2));
-            String persenStr = ((String) diskonTableModel.getValueAt(row, 3)).replace("%", "");
-            txtPersenDiskon.setText(persenStr);
-        }
-    }
+        javax.swing.GroupLayout jDesktopPane1Layout = new javax.swing.GroupLayout(jDesktopPane1);
+        jDesktopPane1.setLayout(jDesktopPane1Layout);
+        jDesktopPane1Layout.setHorizontalGroup(
+            jDesktopPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 613, Short.MAX_VALUE)
+        );
+        jDesktopPane1Layout.setVerticalGroup(
+            jDesktopPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 479, Short.MAX_VALUE)
+        );
 
-    private void addDiskon() {
-        String nama = txtNamaDiskon.getText().trim();
-        String persenStr = txtPersenDiskon.getText().trim();
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 3, 48)); // NOI18N
+        jLabel5.setText("DASHBOARD ADMIN");
 
-        if (nama.isEmpty() || persenStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        jSeparator2.setForeground(new java.awt.Color(0, 0, 0));
+        jSeparator2.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                        .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 515, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(48, 48, 48))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addGap(67, 67, 67))))
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18))
+        );
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jDesktopPane1)
+                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jDesktopPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void LogoutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LogoutButtonActionPerformed
+        int confirm = javax.swing.JOptionPane.showConfirmDialog(
+               this,
+               "Yakin ingin logout?",
+               "Konfirmasi Logout",
+               javax.swing.JOptionPane.YES_NO_OPTION
+           );
+
+           if (confirm == javax.swing.JOptionPane.YES_OPTION) {
+               model.SessionModel.clearSession();
+               this.dispose();
+               new view.Login().setVisible(true);
+           }
+    }//GEN-LAST:event_LogoutButtonActionPerformed
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
         try {
-            double persen = Double.parseDouble(persenStr);
-            if (controller.insertDiskon(nama, persen)) {
-                JOptionPane.showMessageDialog(this, "Diskon berhasil ditambahkan!");
-                controller.loadDiskon(diskonTableModel);
-                clearDiskonForm();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal menambah diskon! (kemungkinan duplikat nama)", "Error", JOptionPane.ERROR_MESSAGE);
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Persen harus berupa angka!", "Error", JOptionPane.WARNING_MESSAGE);
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(Admin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(Admin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(Admin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(Admin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-    }
+        //</editor-fold>
 
-    private void updateDiskon() {
-        int row = diskonTable.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Pilih diskon yang akan diupdate!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int id = (int) diskonTableModel.getValueAt(row, 1);
-        String nama = txtNamaDiskon.getText().trim();
-        String persenStr = txtPersenDiskon.getText().trim();
-
-        try {
-            double persen = Double.parseDouble(persenStr);
-            if (controller.updateDiskon(id, nama, persen)) {
-                JOptionPane.showMessageDialog(this, "Diskon berhasil diupdate!");
-                controller.loadDiskon(diskonTableModel);
-                clearDiskonForm();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal update diskon!", "Error", JOptionPane.ERROR_MESSAGE);
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new Admin().setVisible(true);
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Persen harus berupa angka!", "Error", JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
-    private void deleteDiskon() {
-        int row = diskonTable.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Pilih diskon yang akan dihapus!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int id = (int) diskonTableModel.getValueAt(row, 1);
-        int confirm = JOptionPane.showConfirmDialog(this, "Yakin hapus diskon ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (controller.deleteDiskon(id)) {
-                JOptionPane.showMessageDialog(this, "Diskon berhasil dihapus!");
-                controller.loadDiskon(diskonTableModel);
-                clearDiskonForm();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal hapus diskon!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    private void clearDiskonForm() {
-        txtNamaDiskon.setText("");
-        txtPersenDiskon.setText("");
-        diskonTable.clearSelection();
-    }
-
-    // ==================== METODE BAYAR ====================
-
-    private JPanel buildMetodePanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 5));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Form Metode Bayar"));
-        formPanel.setPreferredSize(new Dimension(380, 120));
-
-        formPanel.add(new JLabel("Nama Metode:"));
-        txtNamaMetode = new JTextField();
-        formPanel.add(txtNamaMetode);
-
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 5));
-        JButton btnAdd = new JButton("Tambah");
-        JButton btnUpdate = new JButton("Update");
-        JButton btnDelete = new JButton("Hapus");
-        JButton btnClear = new JButton("Clear");
-
-        btnAdd.addActionListener(e -> addMetode());
-        btnUpdate.addActionListener(e -> updateMetode());
-        btnDelete.addActionListener(e -> deleteMetode());
-        btnClear.addActionListener(e -> clearMetodeForm());
-
-        btnPanel.add(btnAdd);
-        btnPanel.add(btnUpdate);
-        btnPanel.add(btnDelete);
-        btnPanel.add(btnClear);
-        formPanel.add(btnPanel);
-        formPanel.add(new JLabel());
-
-        String[] cols = {"No", "ID", "Nama Metode"};
-        metodeTableModel = new DefaultTableModel(cols, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-        metodeTable = new JTable(metodeTableModel);
-        metodeTable.getColumnModel().getColumn(0).setPreferredWidth(40);
-        metodeTable.getColumnModel().getColumn(1).setPreferredWidth(40);
-        metodeTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) selectMetodeRow();
         });
-
-        controller.loadMetodeBayar(metodeTableModel);
-
-        panel.add(formPanel, BorderLayout.WEST);
-        panel.add(new JScrollPane(metodeTable), BorderLayout.CENTER);
-        return panel;
     }
 
-    private void selectMetodeRow() {
-        int row = metodeTable.getSelectedRow();
-        if (row >= 0) {
-            txtNamaMetode.setText((String) metodeTableModel.getValueAt(row, 2));
-        }
-    }
-
-    private void addMetode() {
-        String nama = txtNamaMetode.getText().trim();
-        if (nama.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nama metode harus diisi!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (controller.insertMetodeBayar(nama)) {
-            JOptionPane.showMessageDialog(this, "Metode bayar berhasil ditambahkan!");
-            controller.loadMetodeBayar(metodeTableModel);
-            clearMetodeForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal menambah metode! (kemungkinan duplikat)", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void updateMetode() {
-        int row = metodeTable.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Pilih metode yang akan diupdate!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int id = (int) metodeTableModel.getValueAt(row, 1);
-        String nama = txtNamaMetode.getText().trim();
-
-        if (controller.updateMetodeBayar(id, nama)) {
-            JOptionPane.showMessageDialog(this, "Metode bayar berhasil diupdate!");
-            controller.loadMetodeBayar(metodeTableModel);
-            clearMetodeForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal update metode!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void deleteMetode() {
-        int row = metodeTable.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Pilih metode yang akan dihapus!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int id = (int) metodeTableModel.getValueAt(row, 1);
-        int confirm = JOptionPane.showConfirmDialog(this, "Yakin hapus metode ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (controller.deleteMetodeBayar(id)) {
-                JOptionPane.showMessageDialog(this, "Metode bayar berhasil dihapus!");
-                controller.loadMetodeBayar(metodeTableModel);
-                clearMetodeForm();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal hapus metode!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    private void clearMetodeForm() {
-        txtNamaMetode.setText("");
-        metodeTable.clearSelection();
-    }
-
-    // ==================== ORDER PANEL ====================
-
-    private JPanel buildOrderPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JLabel title = new JLabel("DAFTAR SEMUA ORDER");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        panel.add(title, BorderLayout.NORTH);
-
-        String[] cols = {"No", "No. Order", "Pelanggan", "Ukuran", "Jumlah", "Total", "Waktu"};
-        orderTableModel = new DefaultTableModel(cols, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-        orderTable = new JTable(orderTableModel);
-        orderTable.getColumnModel().getColumn(0).setPreferredWidth(40);
-
-        controller.loadAllOrders(orderTableModel);
-
-        JButton btnRefresh = new JButton("Refresh");
-        btnRefresh.addActionListener(e -> controller.loadAllOrders(orderTableModel));
-
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        btnPanel.add(btnRefresh);
-
-        panel.add(btnPanel, BorderLayout.SOUTH);
-        panel.add(new JScrollPane(orderTable), BorderLayout.CENTER);
-        return panel;
-    }
-
-    // ==================== SUMMARY PANEL ====================
-
-    private JPanel buildSummaryPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JLabel title = new JLabel("RINGKASAN SISTEM");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        title.setAlignmentX(CENTER_ALIGNMENT);
-
-        JPanel cards = new JPanel(new GridLayout(1, 5, 20, 0));
-        cards.setMaximumSize(new Dimension(900, 120));
-        cards.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-
-        cards.add(createCard("Total Transaksi", "#2196F3", lblTransaksi = new JLabel()));
-        cards.add(createCard("Total Pelanggan", "#4CAF50", lblPelanggan = new JLabel()));
-        cards.add(createCard("Total Order", "#FF9800", lblOrder = new JLabel()));
-        cards.add(createCard("Total Omzet", "#9C27B0", lblOmzet = new JLabel()));
-        cards.add(createCard("Total User", "#F44336", lblTotalUser = new JLabel()));
-
-        JButton btnRefresh = new JButton("Refresh Ringkasan");
-        btnRefresh.setAlignmentX(CENTER_ALIGNMENT);
-        btnRefresh.addActionListener(e -> refreshSummary());
-
-        panel.add(title);
-        panel.add(cards);
-        panel.add(btnRefresh);
-        refreshSummary();
-        return panel;
-    }
-
-    private JPanel createCard(String title, String colorHex, JLabel valueLabel) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.decode(colorHex));
-        card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        JLabel lblTitle = new JLabel(title);
-        lblTitle.setForeground(Color.WHITE);
-        lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblTitle.setAlignmentX(CENTER_ALIGNMENT);
-
-        valueLabel.setForeground(Color.WHITE);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        valueLabel.setAlignmentX(CENTER_ALIGNMENT);
-        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        card.add(lblTitle);
-        card.add(valueLabel);
-        return card;
-    }
-
-    private void refreshSummary() {
-        double[] r = controller.getRingkasanHarian();
-        DecimalFormat df = new DecimalFormat("#,###");
-        lblTransaksi.setText("<html><center><b>" + (int) r[0] + "</b></center></html>");
-        lblPelanggan.setText("<html><center><b>" + (int) r[1] + "</b></center></html>");
-        lblOrder.setText("<html><center><b>" + (int) r[2] + "</b></center></html>");
-        lblOmzet.setText("<html><center><b>Rp " + df.format(r[3]) + "</b></center></html>");
-        lblTotalUser.setText("<html><center><b>" + controller.getUserCount() + "</b></center></html>");
-    }
-
-    private void logout() {
-        int confirm = JOptionPane.showConfirmDialog(this, "Yakin ingin logout?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            new Login().setVisible(true);
-            this.dispose();
-        }
-    }
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton DashboardButton;
+    private javax.swing.JLabel JabatanKasir;
+    private javax.swing.JButton KeloladiskonButton;
+    private javax.swing.JButton KelolapembayaranButton;
+    private javax.swing.JButton KelolapengaturansistemButton;
+    private javax.swing.JButton KelolaphotoButton;
+    private javax.swing.JButton KelolauserButton;
+    private javax.swing.JButton LogoutButton;
+    private javax.swing.JLabel NamaKasir;
+    private javax.swing.JDesktopPane jDesktopPane1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JSeparator jSeparator2;
+    // End of variables declaration//GEN-END:variables
 }
